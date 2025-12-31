@@ -485,4 +485,17 @@ export const productSchemas = {
       },
     },
   }),
+
+  getVariants: createValidationSchema({
+    params: {
+      type: "object",
+      required: ["productId"],
+      properties: {
+        productId: {
+          type: "string",
+          pattern: "^[0-9a-fA-F]{24}$",
+        },
+      },
+    },
+  }),
 };

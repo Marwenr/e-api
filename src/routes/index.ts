@@ -5,6 +5,7 @@ import addressRoutes from './address';
 import productRoutes from './product';
 import categoryRoutes from './category';
 import contactRoutes from './contact';
+import cartRoutes from './cart';
 import adminRoutes from './admin';
 
 export const registerRoutes = async (fastify: FastifyInstance): Promise<void> => {
@@ -15,6 +16,7 @@ export const registerRoutes = async (fastify: FastifyInstance): Promise<void> =>
   await fastify.register(productRoutes, { prefix: '/products' });
   await fastify.register(categoryRoutes, { prefix: '/categories' });
   await fastify.register(contactRoutes, { prefix: '/contact' });
+  await fastify.register(cartRoutes, { prefix: '/cart' });
   
   // Admin routes (protected by authentication and admin role)
   await fastify.register(adminRoutes, { prefix: '/admin' });

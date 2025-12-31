@@ -123,8 +123,7 @@ const productVariantSchema = new Schema<IProductVariant>(
 productVariantSchema.index({ productId: 1, isDefault: 1 });
 productVariantSchema.index({ productId: 1, stock: 1 }); // For stock availability queries
 
-// Index for SKU lookup (already has unique index)
-productVariantSchema.index({ sku: 1 });
+// Note: SKU already has a unique index from the field definition, no need for duplicate
 
 // Ensure only one default variant per product
 productVariantSchema.pre("save", async function (next) {

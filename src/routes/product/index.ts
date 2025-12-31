@@ -37,5 +37,10 @@ export default async function productRoutes(
   fastify.get('/discounted', {
     schema: productSchemas.getDiscounted,
   }, controller.getDiscounted);
+
+  // Get product variants (public route)
+  fastify.get('/:productId/variants', {
+    schema: productSchemas.getVariants,
+  }, controller.getVariants);
 }
 

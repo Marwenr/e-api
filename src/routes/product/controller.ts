@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { ProductService } from '../../services';
+import { ProductService, ProductVariantService } from '../../services';
 import { sendSuccess, sendPaginated, sendError } from '../../utils/response';
 import { AuthError } from '../../services/errors';
 
@@ -196,6 +196,26 @@ export const getDiscounted = async (
       sendError(reply, error.message, error.code, error.statusCode);
     } else {
       sendError(reply, 'Failed to get discounted products', 'GET_DISCOUNTED_PRODUCTS_ERROR', 500);
+    }
+  }
+};
+
+/**
+ * Get product variants (public route)
+ */
+export const getVariants = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> => {
+  try {
+    const { productId } = request.params as { productId: string };
+    const variants = await ProductVariantService.getVariantsByProductId(productId);
+    sendSuccess(reply, variants, 200);
+  } catch (error: any) {
+    if (error instanceof AuthError) {
+      sendError(reply, error.message, error.code, error.statusCode);
+    } else {
+      sendError(reply, 'Failed to get product variants', 'GET_VARIANTS_ERROR', 500);
     }
   }
 };
