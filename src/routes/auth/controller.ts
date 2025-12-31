@@ -243,6 +243,63 @@ export const resetPassword = async (
 };
 
 /**
+ * Get current user profile
+ */
+export const getCurrentUser = async (
+  request: AuthenticatedRequest,
+  reply: FastifyReply
+): Promise<void> => {
+  try {
+    if (!request.user) {
+      sendError(reply, 'Unauthorized', 'UNAUTHORIZED', 401);
+      return;
+    }
+
+    const user = await AuthService.getCurrentUser(request.user.userId);
+    sendSuccess(reply, user, 200);
+  } catch (error: any) {
+    if (error instanceof AuthError) {
+      sendError(reply, error.message, error.code, error.statusCode);
+    } else {
+      sendError(reply, 'Failed to get user profile', 'GET_USER_ERROR', 500);
+    }
+  }
+};
+
+/**
+ * Update user profile
+ */
+export const updateProfile = async (
+  request: AuthenticatedRequest,
+  reply: FastifyReply
+): Promise<void> => {
+  try {
+    if (!request.user) {
+      sendError(reply, 'Unauthorized', 'UNAUTHORIZED', 401);
+      return;
+    }
+
+    const { firstName, lastName } = request.body as {
+      firstName?: string;
+      lastName?: string;
+    };
+
+    const updatedUser = await AuthService.updateProfile(request.user.userId, {
+      firstName,
+      lastName,
+    });
+
+    sendSuccess(reply, updatedUser, 200);
+  } catch (error: any) {
+    if (error instanceof AuthError) {
+      sendError(reply, error.message, error.code, error.statusCode);
+    } else {
+      sendError(reply, 'Failed to update profile', 'UPDATE_PROFILE_ERROR', 500);
+    }
+  }
+};
+
+/**
  * Change password (authenticated users)
  */
 export const changePassword = async (

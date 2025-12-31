@@ -13,6 +13,10 @@ export default async function authRoutes(
   await fastify.register(async function (fastify) {
     await fastify.register(rateLimit, {
       ...loginRateLimitConfig,
+      skip: (request) => {
+        // Skip rate limiting for OPTIONS requests (CORS preflight)
+        return request.method === 'OPTIONS';
+      },
       keyGenerator: (request) => {
         const email = (request.body as any)?.email || '';
         return `auth-${request.ip}-${email}`;
@@ -50,6 +54,10 @@ export default async function authRoutes(
   await fastify.register(async function (fastify) {
     await fastify.register(rateLimit, {
       ...passwordResetRateLimitConfig,
+      skip: (request) => {
+        // Skip rate limiting for OPTIONS requests (CORS preflight)
+        return request.method === 'OPTIONS';
+      },
       keyGenerator: (request) => {
         const email = (request.body as any)?.email || '';
         return `password-reset-${request.ip}-${email}`;
@@ -66,6 +74,38 @@ export default async function authRoutes(
   });
 
   // Protected routes (require authentication)
+  fastify.get('/me', {
+    schema: {
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                email: { type: 'string' },
+                firstName: { type: 'string' },
+                lastName: { type: 'string' },
+                role: { type: 'string' },
+                status: { type: 'string' },
+                emailVerified: { type: 'boolean' },
+                storeId: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+    },
+    preHandler: [authenticate],
+  }, controller.getCurrentUser);
+
+  fastify.patch('/profile', {
+    schema: authSchemas.updateProfile,
+    preHandler: [authenticate],
+  }, controller.updateProfile);
+
   fastify.post('/logout-all', {
     schema: {
       response: {

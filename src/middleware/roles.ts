@@ -27,14 +27,36 @@ export const requireRole = (...allowedRoles: UserRole[]) => {
 };
 
 /**
- * Require admin role
+ * Require admin role (includes ADMIN, SUPER_ADMIN, STAFF)
  */
-export const requireAdmin = requireRole(UserRole.ADMIN);
+export const requireAdmin = requireRole(
+  UserRole.ADMIN,
+  UserRole.SUPER_ADMIN,
+  UserRole.STAFF
+);
+
+/**
+ * Require super admin role only
+ */
+export const requireSuperAdmin = requireRole(UserRole.SUPER_ADMIN);
+
+/**
+ * Require admin or super admin (excludes staff)
+ */
+export const requireAdminOrSuperAdmin = requireRole(
+  UserRole.ADMIN,
+  UserRole.SUPER_ADMIN
+);
 
 /**
  * Require store owner or admin
  */
-export const requireStoreOwner = requireRole(UserRole.STORE_OWNER, UserRole.ADMIN);
+export const requireStoreOwner = requireRole(
+  UserRole.STORE_OWNER,
+  UserRole.ADMIN,
+  UserRole.SUPER_ADMIN,
+  UserRole.STAFF
+);
 
 /**
  * Require store manager, store owner, or admin
@@ -42,7 +64,9 @@ export const requireStoreOwner = requireRole(UserRole.STORE_OWNER, UserRole.ADMI
 export const requireStoreManager = requireRole(
   UserRole.STORE_MANAGER,
   UserRole.STORE_OWNER,
-  UserRole.ADMIN
+  UserRole.ADMIN,
+  UserRole.SUPER_ADMIN,
+  UserRole.STAFF
 );
 
 /**
@@ -65,10 +89,21 @@ export const hasRole = (userRole: string, ...allowedRoles: UserRole[]): boolean 
 };
 
 /**
- * Check if user is admin
+ * Check if user is admin (includes ADMIN, SUPER_ADMIN, STAFF)
  */
 export const isAdmin = (userRole: string): boolean => {
-  return userRole === UserRole.ADMIN;
+  return [
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.STAFF,
+  ].includes(userRole as UserRole);
+};
+
+/**
+ * Check if user is super admin
+ */
+export const isSuperAdmin = (userRole: string): boolean => {
+  return userRole === UserRole.SUPER_ADMIN;
 };
 
 /**
@@ -77,6 +112,8 @@ export const isAdmin = (userRole: string): boolean => {
 export const canManageStore = (userRole: string): boolean => {
   return [
     UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.STAFF,
     UserRole.STORE_OWNER,
     UserRole.STORE_MANAGER,
   ].includes(userRole as UserRole);

@@ -3,6 +3,8 @@ import { Document } from 'mongoose';
 export enum UserRole {
   CUSTOMER = 'customer',
   ADMIN = 'admin',
+  STAFF = 'staff',
+  SUPER_ADMIN = 'super_admin',
   STORE_OWNER = 'store_owner',
   STORE_MANAGER = 'store_manager',
 }
@@ -50,5 +52,11 @@ export interface IRefreshToken extends Document {
   revokedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export enum ProductStatus {
+  DRAFT = 'draft',
+  ACTIVE = 'active',
+  ARCHIVED = 'archived',
 }
 

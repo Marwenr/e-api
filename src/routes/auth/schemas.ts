@@ -290,6 +290,43 @@ export const authSchemas = {
     },
   }),
 
+  updateProfile: createValidationSchema({
+    body: {
+      type: 'object',
+      properties: {
+        firstName: {
+          type: 'string',
+          maxLength: 50,
+        },
+        lastName: {
+          type: 'string',
+          maxLength: 50,
+        },
+      },
+    },
+    response: {
+      200: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean' },
+          data: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              email: { type: 'string' },
+              firstName: { type: 'string' },
+              lastName: { type: 'string' },
+              role: { type: 'string' },
+              status: { type: 'string' },
+              emailVerified: { type: 'boolean' },
+              storeId: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+  }),
+
   changePassword: createValidationSchema({
     body: {
       type: 'object',

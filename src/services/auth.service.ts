@@ -1,5 +1,5 @@
-import { User, RefreshToken, UserRole, UserStatus } from '../models';
-import { JWTUtil, TokenPayload } from '../utils/jwt';
+import { User, RefreshToken, UserRole, UserStatus } from "../models";
+import { JWTUtil, TokenPayload } from "../utils/jwt";
 import {
   AuthError,
   ValidationError,
@@ -9,7 +9,7 @@ import {
   ConflictError,
   TokenExpiredError,
   InvalidTokenError,
-} from './errors';
+} from "./errors";
 
 export interface RegisterInput {
   email: string;
@@ -67,17 +67,17 @@ export class AuthService {
   static async register(input: RegisterInput): Promise<AuthResult> {
     // Validate input
     if (!input.email || !input.password) {
-      throw new ValidationError('Email and password are required');
+      throw new ValidationError("Email and password are required");
     }
 
     if (input.password.length < 8) {
-      throw new ValidationError('Password must be at least 8 characters');
+      throw new ValidationError("Password must be at least 8 characters");
     }
 
     // Fast check if email exists (optimized: only checks existence, doesn't fetch document)
     const emailExists = await User.checkEmailExists(input.email.toLowerCase());
     if (emailExists) {
-      throw new ConflictError('User with this email already exists');
+      throw new ConflictError("User with this email already exists");
     }
 
     // Create new user
@@ -134,19 +134,21 @@ export class AuthService {
   static async login(input: LoginInput): Promise<AuthResult> {
     // Validate input
     if (!input.email || !input.password) {
-      throw new ValidationError('Email and password are required');
+      throw new ValidationError("Email and password are required");
     }
 
     // Find user with password (optimized: excludes suspended/inactive in query for fast-fail)
-    const user = await User.findByEmailWithPasswordForAuth(input.email.toLowerCase());
+    const user = await User.findByEmailWithPasswordForAuth(
+      input.email.toLowerCase()
+    );
     if (!user) {
-      throw new UnauthorizedError('Invalid email or password');
+      throw new UnauthorizedError("Invalid email or password");
     }
 
     // Verify password
     const isPasswordValid = await user.comparePassword(input.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedError('Invalid email or password');
+      throw new UnauthorizedError("Invalid email or password");
     }
 
     // Update last login (optimized: only updates lastLogin field, doesn't fetch document)
@@ -188,9 +190,11 @@ export class AuthService {
   /**
    * Refresh access token
    */
-  static async refreshToken(input: RefreshTokenInput): Promise<{ accessToken: string; refreshToken: string }> {
+  static async refreshToken(
+    input: RefreshTokenInput
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     if (!input.refreshToken) {
-      throw new ValidationError('Refresh token is required');
+      throw new ValidationError("Refresh token is required");
     }
 
     // Verify refresh token
@@ -198,26 +202,34 @@ export class AuthService {
     try {
       payload = JWTUtil.verifyRefreshToken(input.refreshToken);
     } catch (error: any) {
-      if (error.message.includes('expired')) {
-        throw new TokenExpiredError('Refresh token has expired');
+      if (error.message.includes("expired")) {
+        throw new TokenExpiredError("Refresh token has expired");
       }
-      throw new InvalidTokenError('Invalid refresh token');
+      throw new InvalidTokenError("Invalid refresh token");
     }
 
     // Check if token exists in database and is not revoked (optimized: lean query)
-    const storedToken = await RefreshToken.findActiveTokenLean(input.refreshToken);
+    const storedToken = await RefreshToken.findActiveTokenLean(
+      input.refreshToken
+    );
     if (!storedToken || !storedToken._id) {
-      throw new InvalidTokenError('Refresh token not found or revoked');
+      throw new InvalidTokenError("Refresh token not found or revoked");
     }
 
     // Verify user still exists and is active (optimized: lean query with projection)
-    const user = await User.findByIdLean(payload.userId, '_id email role status storeId');
+    const user = await User.findByIdLean(
+      payload.userId,
+      "_id email role status storeId"
+    );
     if (!user || !user._id) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
-    if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.INACTIVE) {
-      throw new ForbiddenError('Account is suspended or inactive');
+    if (
+      user.status === UserStatus.SUSPENDED ||
+      user.status === UserStatus.INACTIVE
+    ) {
+      throw new ForbiddenError("Account is suspended or inactive");
     }
 
     // Token rotation: Revoke old token before issuing new one (optimized: no document return)
@@ -250,7 +262,7 @@ export class AuthService {
    */
   static async logout(refreshToken: string): Promise<void> {
     if (!refreshToken) {
-      throw new ValidationError('Refresh token is required');
+      throw new ValidationError("Refresh token is required");
     }
 
     // Optimized: Use lean query and revoke without returning document
@@ -265,7 +277,7 @@ export class AuthService {
    */
   static async logoutAll(userId: string): Promise<void> {
     if (!userId) {
-      throw new ValidationError('User ID is required');
+      throw new ValidationError("User ID is required");
     }
 
     await RefreshToken.revokeAllUserTokens(userId);
@@ -276,12 +288,12 @@ export class AuthService {
    */
   static async verifyEmail(token: string): Promise<void> {
     if (!token) {
-      throw new ValidationError('Verification token is required');
+      throw new ValidationError("Verification token is required");
     }
 
     const user = await User.findByEmailVerificationToken(token);
     if (!user) {
-      throw new InvalidTokenError('Invalid or expired verification token');
+      throw new InvalidTokenError("Invalid or expired verification token");
     }
 
     // Verify email
@@ -295,29 +307,35 @@ export class AuthService {
   /**
    * Resend email verification
    */
-  static async resendEmailVerification(email: string): Promise<{ message: string }> {
+  static async resendEmailVerification(
+    email: string
+  ): Promise<{ message: string }> {
     if (!email) {
-      throw new ValidationError('Email is required');
+      throw new ValidationError("Email is required");
     }
 
     // Optimized: Only fetch necessary fields for verification check
     const user = await User.findOne({ email: email.toLowerCase() })
-      .select('_id email emailVerified')
+      .select("_id email emailVerified")
       .lean();
-    
+
     if (!user || !user._id) {
       // Don't reveal if user exists for security
-      return { message: 'If an account exists, a verification email will be sent' };
+      return {
+        message: "If an account exists, a verification email will be sent",
+      };
     }
 
     if (user.emailVerified) {
-      throw new ConflictError('Email is already verified');
+      throw new ConflictError("Email is already verified");
     }
 
     // Fetch full document only when needed for token generation
     const fullUser = await User.findById(user._id.toString());
     if (!fullUser) {
-      return { message: 'If an account exists, a verification email will be sent' };
+      return {
+        message: "If an account exists, a verification email will be sent",
+      };
     }
 
     // Generate new verification token
@@ -327,7 +345,9 @@ export class AuthService {
     // In production, send email here
     // await emailService.sendVerificationEmail(user.email, verificationToken);
 
-    return { message: 'If an account exists, a verification email will be sent' };
+    return {
+      message: "If an account exists, a verification email will be sent",
+    };
   }
 
   /**
@@ -335,23 +355,27 @@ export class AuthService {
    */
   static async forgotPassword(email: string): Promise<{ message: string }> {
     if (!email) {
-      throw new ValidationError('Email is required');
+      throw new ValidationError("Email is required");
     }
 
     // Optimized: Fast check if user exists, then fetch only when needed
     const userExists = await User.checkEmailExists(email.toLowerCase());
     if (!userExists) {
       // Don't reveal if user exists for security
-      return { message: 'If an account exists, a password reset email will be sent' };
+      return {
+        message: "If an account exists, a password reset email will be sent",
+      };
     }
 
     // Fetch user only when we know it exists (optimized: only fetch necessary fields)
     const user = await User.findOne({ email: email.toLowerCase() })
-      .select('_id email passwordResetToken passwordResetExpires')
+      .select("_id email passwordResetToken passwordResetExpires")
       .lean(false); // Need full document for token generation
 
     if (!user) {
-      return { message: 'If an account exists, a password reset email will be sent' };
+      return {
+        message: "If an account exists, a password reset email will be sent",
+      };
     }
 
     // Generate password reset token
@@ -361,24 +385,29 @@ export class AuthService {
     // In production, send email here
     // await emailService.sendPasswordResetEmail(user.email, resetToken);
 
-    return { message: 'If an account exists, a password reset email will be sent' };
+    return {
+      message: "If an account exists, a password reset email will be sent",
+    };
   }
 
   /**
    * Reset password using token
    */
-  static async resetPassword(token: string, newPassword: string): Promise<void> {
+  static async resetPassword(
+    token: string,
+    newPassword: string
+  ): Promise<void> {
     if (!token || !newPassword) {
-      throw new ValidationError('Token and new password are required');
+      throw new ValidationError("Token and new password are required");
     }
 
     if (newPassword.length < 8) {
-      throw new ValidationError('Password must be at least 8 characters');
+      throw new ValidationError("Password must be at least 8 characters");
     }
 
     const user = await User.findByPasswordResetToken(token);
     if (!user) {
-      throw new InvalidTokenError('Invalid or expired password reset token');
+      throw new InvalidTokenError("Invalid or expired password reset token");
     }
 
     // Update password
@@ -389,29 +418,104 @@ export class AuthService {
   }
 
   /**
+   * Get current user profile
+   */
+  static async getCurrentUser(userId: string): Promise<{
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    role: UserRole;
+    status: UserStatus;
+    emailVerified: boolean;
+    storeId?: string;
+  }> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      status: user.status,
+      emailVerified: user.emailVerified,
+      storeId: user.storeId,
+    };
+  }
+
+  /**
+   * Update user profile
+   */
+  static async updateProfile(
+    userId: string,
+    data: { firstName?: string; lastName?: string }
+  ): Promise<{
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    role: UserRole;
+    status: UserStatus;
+    emailVerified: boolean;
+    storeId?: string;
+  }> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    // Update fields if provided
+    if (data.firstName !== undefined) {
+      user.firstName = data.firstName.trim() || undefined;
+    }
+    if (data.lastName !== undefined) {
+      user.lastName = data.lastName.trim() || undefined;
+    }
+
+    await user.save();
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role as UserRole,
+      status: user.status as UserStatus,
+      emailVerified: user.emailVerified,
+      storeId: user.storeId,
+    };
+  }
+
+  /**
    * Change password (for authenticated users)
    */
   static async changePassword(input: ChangePasswordInput): Promise<void> {
     if (!input.userId || !input.currentPassword || !input.newPassword) {
-      throw new ValidationError('User ID, current password, and new password are required');
+      throw new ValidationError(
+        "User ID, current password, and new password are required"
+      );
     }
 
     if (input.newPassword.length < 8) {
-      throw new ValidationError('New password must be at least 8 characters');
+      throw new ValidationError("New password must be at least 8 characters");
     }
 
     // Find user with password (optimized: only fetch necessary fields)
     const user = await User.findById(input.userId)
-      .select('+password _id email')
+      .select("+password _id email")
       .lean(false); // Need full document for password comparison and update
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
     // Verify current password
     const isPasswordValid = await user.comparePassword(input.currentPassword);
     if (!isPasswordValid) {
-      throw new UnauthorizedError('Current password is incorrect');
+      throw new UnauthorizedError("Current password is incorrect");
     }
 
     // Update password
@@ -449,4 +553,3 @@ export class AuthService {
     await refreshToken.save();
   }
 }
-
