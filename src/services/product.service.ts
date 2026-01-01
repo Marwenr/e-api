@@ -11,6 +11,7 @@ export interface CreateProductInput {
   sku: string;
   basePrice: number;
   discountPrice?: number;
+  stock?: number;
   images?: Array<{ url: string; alt?: string; isPrimary?: boolean }>;
   attributes?: Array<{ name: string; value: string }>;
   seoTitle?: string;
@@ -27,6 +28,7 @@ export interface UpdateProductInput {
   sku?: string;
   basePrice?: number;
   discountPrice?: number;
+  stock?: number;
   images?: Array<{ url: string; alt?: string; isPrimary?: boolean }>;
   attributes?: Array<{ name: string; value: string }>;
   seoTitle?: string;
@@ -155,6 +157,10 @@ export class ProductService {
       throw new ValidationError("Discount price must be less than base price");
     }
 
+    if (input.stock !== undefined && input.stock < 0) {
+      throw new ValidationError("Stock cannot be negative");
+    }
+
     // Validate category
     await this.validateCategory(input.categoryId);
 
@@ -183,6 +189,7 @@ export class ProductService {
       sku: input.sku.toUpperCase(),
       basePrice: input.basePrice,
       discountPrice: input.discountPrice,
+      stock: input.stock !== undefined ? input.stock : 0,
       status: ProductStatus.DRAFT,
       soldCount: 0,
       images: input.images || [],
@@ -219,6 +226,11 @@ export class ProductService {
       if (input.discountPrice >= basePrice) {
         throw new ValidationError("Discount price must be less than base price");
       }
+    }
+
+    // Validate stock if provided
+    if (input.stock !== undefined && input.stock < 0) {
+      throw new ValidationError("Stock cannot be negative");
     }
 
     // Validate category if provided
@@ -261,6 +273,7 @@ export class ProductService {
     if (input.shortDescription !== undefined) product.shortDescription = input.shortDescription?.trim();
     if (input.basePrice !== undefined) product.basePrice = input.basePrice;
     if (input.discountPrice !== undefined) product.discountPrice = input.discountPrice || null;
+    if (input.stock !== undefined) product.stock = input.stock;
     if (input.attributes !== undefined) product.attributes = input.attributes;
     if (input.seoTitle !== undefined) product.seoTitle = input.seoTitle?.trim();
     if (input.seoDescription !== undefined) product.seoDescription = input.seoDescription?.trim();

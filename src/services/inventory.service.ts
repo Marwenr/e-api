@@ -102,25 +102,27 @@ export class InventoryService {
       ProductVariant.countDocuments(query),
     ]);
 
-    const data: InventoryItem[] = variants.map((variant: any) => {
-      const product = variant.productId;
-      const stock = variant.stock || 0;
-      const reservedStock = 0; // TODO: Implement reserved stock tracking
-      const availableStock = stock - reservedStock;
+    const data: InventoryItem[] = variants
+      .filter((variant: any) => variant.productId) // Filter out variants with null productId
+      .map((variant: any) => {
+        const product = variant.productId;
+        const stock = variant.stock || 0;
+        const reservedStock = 0; // TODO: Implement reserved stock tracking
+        const availableStock = stock - reservedStock;
 
-      return {
-        id: variant._id.toString(),
-        productId: product._id.toString(),
-        productName: product.name,
-        variantId: variant._id.toString(),
-        variantSku: variant.sku,
-        variantName: variant.name,
-        stock,
-        reservedStock,
-        availableStock,
-        lowStockAlert: stock <= this.LOW_STOCK_THRESHOLD,
-      };
-    });
+        return {
+          id: variant._id.toString(),
+          productId: product._id.toString(),
+          productName: product.name,
+          variantId: variant._id.toString(),
+          variantSku: variant.sku,
+          variantName: variant.name,
+          stock,
+          reservedStock,
+          availableStock,
+          lowStockAlert: stock <= this.LOW_STOCK_THRESHOLD,
+        };
+      });
 
     return {
       data,
@@ -145,14 +147,19 @@ export class InventoryService {
       throw new NotFoundError('Variant not found');
     }
 
+    const product = (variant as any).productId;
+    if (!product) {
+      throw new NotFoundError('Product not found for this variant');
+    }
+
     const stock = (variant as any).stock || 0;
     const reservedStock = 0; // TODO: Implement reserved stock tracking
     const availableStock = stock - reservedStock;
 
     return {
       id: variant._id.toString(),
-      productId: (variant as any).productId._id.toString(),
-      productName: (variant as any).productId.name,
+      productId: product._id.toString(),
+      productName: product.name,
       variantId: variant._id.toString(),
       variantSku: variant.sku,
       variantName: variant.name,
@@ -239,24 +246,26 @@ export class InventoryService {
       .sort({ stock: 1 })
       .lean();
 
-    return variants.map((variant: any) => {
-      const stock = variant.stock || 0;
-      const reservedStock = 0;
-      const availableStock = stock - reservedStock;
+    return variants
+      .filter((variant: any) => variant.productId) // Filter out variants with null productId
+      .map((variant: any) => {
+        const stock = variant.stock || 0;
+        const reservedStock = 0;
+        const availableStock = stock - reservedStock;
 
-      return {
-        id: variant._id.toString(),
-        productId: variant.productId._id.toString(),
-        productName: variant.productId.name,
-        variantId: variant._id.toString(),
-        variantSku: variant.sku,
-        variantName: variant.name,
-        stock,
-        reservedStock,
-        availableStock,
-        lowStockAlert: true,
-      };
-    });
+        return {
+          id: variant._id.toString(),
+          productId: variant.productId._id.toString(),
+          productName: variant.productId.name,
+          variantId: variant._id.toString(),
+          variantSku: variant.sku,
+          variantName: variant.name,
+          stock,
+          reservedStock,
+          availableStock,
+          lowStockAlert: true,
+        };
+      });
   }
 }
 

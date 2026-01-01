@@ -21,6 +21,7 @@ export interface IProduct extends Document {
   sku: string;
   basePrice: number;
   discountPrice?: number;
+  stock?: number; // Stock for products without variants
   status: ProductStatus;
   soldCount: number;
   publishedAt?: Date;
@@ -129,6 +130,12 @@ const productSchema = new Schema<IProduct>(
         },
         message: "Discount price must be less than base price",
       },
+    },
+    stock: {
+      type: Number,
+      min: [0, "Stock cannot be negative"],
+      default: 0,
+      index: true,
     },
     status: {
       type: String,

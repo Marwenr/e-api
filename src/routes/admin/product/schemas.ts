@@ -37,6 +37,10 @@ export const createProductSchema = createValidationSchema({
         type: 'number',
         minimum: 0,
       },
+      stock: {
+        type: 'number',
+        minimum: 0,
+      },
       status: {
         type: 'string',
         enum: ['draft', 'active', 'archived'],
@@ -137,6 +141,10 @@ export const updateProductSchema = createValidationSchema({
         minimum: 0,
       },
       discountPrice: {
+        type: 'number',
+        minimum: 0,
+      },
+      stock: {
         type: 'number',
         minimum: 0,
       },

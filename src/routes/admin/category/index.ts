@@ -40,3 +40,6 @@ export default async function adminCategoryRoutes(
   fastify.delete('/:id', { schema: deleteCategorySchema }, deleteCategory);
 }
 
+
+
+
