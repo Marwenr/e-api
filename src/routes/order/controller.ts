@@ -32,7 +32,7 @@ interface CreateOrderRequest extends AuthenticatedRequest {
     paymentMethod: PaymentMethod;
     notes?: string;
   };
-  query?: {
+  query: {
     sessionId?: string;
   };
 }
@@ -72,7 +72,7 @@ interface RefundOrderRequest extends AuthenticatedRequest {
 }
 
 interface ListOrdersRequest extends AuthenticatedRequest {
-  query?: {
+  query: {
     status?: OrderStatus;
     paymentStatus?: PaymentStatus;
     paymentMethod?: PaymentMethod;

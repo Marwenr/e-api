@@ -9,7 +9,7 @@ interface AddToCartRequest extends FastifyRequest {
     variantId?: string;
     quantity: number;
   };
-  query?: {
+  query: {
     sessionId?: string;
   };
 }
@@ -19,20 +19,20 @@ interface UpdateCartItemRequest extends FastifyRequest {
     itemIndex: number;
     quantity: number;
   };
-  query?: {
+  query: {
     sessionId?: string;
   };
 }
 
 interface RemoveCartItemRequest extends FastifyRequest {
-  query?: {
+  query: {
     itemIndex: string;
     sessionId?: string;
   };
 }
 
 interface GetCartRequest extends FastifyRequest {
-  query?: {
+  query: {
     sessionId?: string;
   };
 }

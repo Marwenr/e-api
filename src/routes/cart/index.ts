@@ -13,8 +13,12 @@ export default async function cartRoutes(
     await fastify.register(rateLimit, {
       max: 100, // 100 requests
       timeWindow: 60000, // per minute
-      skip: (request) => {
-        return request.method === "OPTIONS";
+      keyGenerator: (request: any) => {
+        // Skip rate limiting for OPTIONS requests (CORS preflight)
+        if (request.method === "OPTIONS") {
+          return 'skip-rate-limit';
+        }
+        return request.ip || 'unknown';
       },
     });
 
@@ -25,7 +29,7 @@ export default async function cartRoutes(
         schema: cartSchemas.getCart,
         preHandler: [optionalAuthenticate],
       },
-      controller.getCart
+      controller.getCart as any
     );
 
     // Add to cart (optional auth - supports both guest and user)
@@ -35,7 +39,7 @@ export default async function cartRoutes(
         schema: cartSchemas.addToCart,
         preHandler: [optionalAuthenticate],
       },
-      controller.addToCart
+      controller.addToCart as any
     );
 
     // Update cart item (optional auth - supports both guest and user)
@@ -45,7 +49,7 @@ export default async function cartRoutes(
         schema: cartSchemas.updateCartItem,
         preHandler: [optionalAuthenticate],
       },
-      controller.updateCartItem
+      controller.updateCartItem as any
     );
 
     // Remove cart item (optional auth - supports both guest and user)
@@ -55,7 +59,7 @@ export default async function cartRoutes(
         schema: cartSchemas.removeCartItem,
         preHandler: [optionalAuthenticate],
       },
-      controller.removeCartItem
+      controller.removeCartItem as any
     );
 
     // Clear cart (optional auth - supports both guest and user)
@@ -83,7 +87,7 @@ export default async function cartRoutes(
         schema: cartSchemas.mergeCart,
         preHandler: [authenticate],
       },
-      controller.mergeCart
+      controller.mergeCart as any
     );
   });
 }

@@ -13,8 +13,12 @@ export default async function orderRoutes(
     await fastify.register(rateLimit, {
       max: 50, // 50 requests
       timeWindow: 60000, // per minute
-      skip: (request) => {
-        return request.method === 'OPTIONS';
+      keyGenerator: (request: any) => {
+        // Skip rate limiting for OPTIONS requests (CORS preflight)
+        if (request.method === 'OPTIONS') {
+          return 'skip-rate-limit';
+        }
+        return request.ip || 'unknown';
       },
     });
 
@@ -25,7 +29,7 @@ export default async function orderRoutes(
         schema: orderSchemas.createOrder,
         preHandler: [optionalAuthenticate],
       },
-      controller.createOrder
+      controller.createOrder as any
     );
 
     // Get user's orders (requires auth)
@@ -45,7 +49,7 @@ export default async function orderRoutes(
         schema: orderSchemas.getOrderById,
         preHandler: [authenticate],
       },
-      controller.getOrderById
+      controller.getOrderById as any
     );
 
     // Get order by order number (requires auth - user can only see their own orders)
@@ -55,7 +59,7 @@ export default async function orderRoutes(
         schema: orderSchemas.getOrderByNumber,
         preHandler: [authenticate],
       },
-      controller.getOrderByNumber
+      controller.getOrderByNumber as any
     );
 
     // Admin routes

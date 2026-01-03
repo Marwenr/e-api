@@ -37,7 +37,7 @@ export const getAllProducts = async (
       minPrice: query.minPrice ? parseFloat(query.minPrice) : undefined,
       maxPrice: query.maxPrice ? parseFloat(query.maxPrice) : undefined,
       sortBy: query.sortBy || "createdAt",
-      sortOrder: query.sortOrder || "desc",
+      sortOrder: (query.sortOrder === "asc" ? "asc" : "desc") as "asc" | "desc",
     };
 
     const result = await ProductService.getAdminProducts(options);

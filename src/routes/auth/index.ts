@@ -13,11 +13,11 @@ export default async function authRoutes(
   await fastify.register(async function (fastify) {
     await fastify.register(rateLimit, {
       ...loginRateLimitConfig,
-      skip: (request) => {
+      keyGenerator: (request: any) => {
         // Skip rate limiting for OPTIONS requests (CORS preflight)
-        return request.method === 'OPTIONS';
-      },
-      keyGenerator: (request) => {
+        if (request.method === 'OPTIONS') {
+          return 'skip-rate-limit';
+        }
         const email = (request.body as any)?.email || '';
         return `auth-${request.ip}-${email}`;
       },
@@ -54,11 +54,11 @@ export default async function authRoutes(
   await fastify.register(async function (fastify) {
     await fastify.register(rateLimit, {
       ...passwordResetRateLimitConfig,
-      skip: (request) => {
+      keyGenerator: (request: any) => {
         // Skip rate limiting for OPTIONS requests (CORS preflight)
-        return request.method === 'OPTIONS';
-      },
-      keyGenerator: (request) => {
+        if (request.method === 'OPTIONS') {
+          return 'skip-rate-limit';
+        }
         const email = (request.body as any)?.email || '';
         return `password-reset-${request.ip}-${email}`;
       },
