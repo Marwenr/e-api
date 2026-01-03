@@ -271,7 +271,7 @@ export const updateOrderStatus = async (
 
     // Check if user is admin (you may need to verify role from user model)
 
-    const { id } = request.params;
+    const { id } = request.params as { id: string };
     const { status, internalNotes, trackingNumber, cancelledReason } = request.body;
 
     const order = await OrderService.updateOrderStatus(id, {
@@ -307,7 +307,7 @@ export const refundOrder = async (
 
     // Check if user is admin (you may need to verify role from user model)
 
-    const { id } = request.params;
+    const { id } = request.params as { id: string };
     const { amount, reason } = request.body;
 
     const order = await OrderService.refundOrder(id, { amount, reason });

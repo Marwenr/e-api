@@ -66,7 +66,7 @@ export default async function orderRoutes(
         schema: orderSchemas.getAllOrders,
         preHandler: [authenticate],
       },
-      controller.getAllOrders
+      controller.getAllOrders as any
     );
 
     // Update order status (admin only)
@@ -76,7 +76,7 @@ export default async function orderRoutes(
         schema: orderSchemas.updateOrderStatus,
         preHandler: [authenticate],
       },
-      controller.updateOrderStatus
+      controller.updateOrderStatus as any
     );
 
     // Refund order (admin only)
@@ -86,7 +86,7 @@ export default async function orderRoutes(
         schema: orderSchemas.refundOrder,
         preHandler: [authenticate],
       },
-      controller.refundOrder
+      controller.refundOrder as any
     );
   });
 }
