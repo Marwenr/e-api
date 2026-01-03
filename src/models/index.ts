@@ -6,5 +6,5 @@ export { Product } from './Product';
 export { ProductVariant } from './ProductVariant';
 export { Contact } from './Contact';
 export { Cart } from './Cart';
-export { Order, OrderStatus, PaymentMethod, PaymentStatus } from './Order';
+export { Order, OrderStatus, PaymentMethod, PaymentStatus, type IOrder, type IOrderItem, type IOrderAddress } from './Order';
 export * from './types';

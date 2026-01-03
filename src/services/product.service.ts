@@ -71,7 +71,7 @@ export class ProductService {
    */
   private static transformCategory(categoryId: any): any {
     if (!categoryId) return null;
-    if (typeof categoryId === 'string') return categoryId;
+    if (typeof categoryId === "string") return categoryId;
     if (categoryId._id) {
       return {
         id: categoryId._id.toString(),
@@ -111,7 +111,10 @@ export class ProductService {
   /**
    * Validate SKU uniqueness
    */
-  private static async validateSkuUnique(sku: string, excludeProductId?: string): Promise<void> {
+  private static async validateSkuUnique(
+    sku: string,
+    excludeProductId?: string
+  ): Promise<void> {
     const query: any = { sku: sku.toUpperCase() };
     if (excludeProductId) {
       query._id = { $ne: new mongoose.Types.ObjectId(excludeProductId) };
@@ -125,7 +128,10 @@ export class ProductService {
   /**
    * Validate slug uniqueness
    */
-  private static async validateSlugUnique(slug: string, excludeProductId?: string): Promise<void> {
+  private static async validateSlugUnique(
+    slug: string,
+    excludeProductId?: string
+  ): Promise<void> {
     const query: any = { slug: slug.toLowerCase() };
     if (excludeProductId) {
       query._id = { $ne: new mongoose.Types.ObjectId(excludeProductId) };
@@ -141,8 +147,15 @@ export class ProductService {
    */
   static async createProduct(input: CreateProductInput) {
     // Validate required fields
-    if (!input.name || !input.categoryId || !input.sku || input.basePrice === undefined) {
-      throw new ValidationError("Name, category, SKU, and base price are required");
+    if (
+      !input.name ||
+      !input.categoryId ||
+      !input.sku ||
+      input.basePrice === undefined
+    ) {
+      throw new ValidationError(
+        "Name, category, SKU, and base price are required"
+      );
     }
 
     if (input.basePrice < 0) {
@@ -153,7 +166,10 @@ export class ProductService {
       throw new ValidationError("Discount price cannot be negative");
     }
 
-    if (input.discountPrice !== undefined && input.discountPrice >= input.basePrice) {
+    if (
+      input.discountPrice !== undefined &&
+      input.discountPrice >= input.basePrice
+    ) {
       throw new ValidationError("Discount price must be less than base price");
     }
 
@@ -175,7 +191,9 @@ export class ProductService {
     if (input.images && input.images.length > 0) {
       const hasPrimary = input.images.some((img) => img.isPrimary === true);
       if (!hasPrimary) {
-        throw new ValidationError("At least one image must be marked as primary");
+        throw new ValidationError(
+          "At least one image must be marked as primary"
+        );
       }
     }
 
@@ -222,9 +240,12 @@ export class ProductService {
       if (input.discountPrice < 0) {
         throw new ValidationError("Discount price cannot be negative");
       }
-      const basePrice = input.basePrice !== undefined ? input.basePrice : product.basePrice;
+      const basePrice =
+        input.basePrice !== undefined ? input.basePrice : product.basePrice;
       if (input.discountPrice >= basePrice) {
-        throw new ValidationError("Discount price must be less than base price");
+        throw new ValidationError(
+          "Discount price must be less than base price"
+        );
       }
     }
 
@@ -261,7 +282,9 @@ export class ProductService {
       if (input.images.length > 0) {
         const hasPrimary = input.images.some((img) => img.isPrimary === true);
         if (!hasPrimary) {
-          throw new ValidationError("At least one image must be marked as primary");
+          throw new ValidationError(
+            "At least one image must be marked as primary"
+          );
         }
       }
       product.images = input.images;
@@ -269,15 +292,20 @@ export class ProductService {
 
     // Update other fields
     if (input.name !== undefined) product.name = input.name.trim();
-    if (input.description !== undefined) product.description = input.description?.trim();
-    if (input.shortDescription !== undefined) product.shortDescription = input.shortDescription?.trim();
+    if (input.description !== undefined)
+      product.description = input.description?.trim();
+    if (input.shortDescription !== undefined)
+      product.shortDescription = input.shortDescription?.trim();
     if (input.basePrice !== undefined) product.basePrice = input.basePrice;
-    if (input.discountPrice !== undefined) product.discountPrice = input.discountPrice || null;
+    if (input.discountPrice !== undefined)
+      product.discountPrice = input.discountPrice ?? null;
     if (input.stock !== undefined) product.stock = input.stock;
     if (input.attributes !== undefined) product.attributes = input.attributes;
     if (input.seoTitle !== undefined) product.seoTitle = input.seoTitle?.trim();
-    if (input.seoDescription !== undefined) product.seoDescription = input.seoDescription?.trim();
-    if (input.seoKeywords !== undefined) product.seoKeywords = input.seoKeywords;
+    if (input.seoDescription !== undefined)
+      product.seoDescription = input.seoDescription?.trim();
+    if (input.seoKeywords !== undefined)
+      product.seoKeywords = input.seoKeywords;
 
     await product.save();
     return product.toJSON();
@@ -370,13 +398,13 @@ export class ProductService {
 
   /**
    * Bulk increment sold count for multiple products (optimized for order completion)
-   * 
+   *
    * Use this method when completing orders to efficiently update sold counts for multiple products.
    * This method uses MongoDB's bulkWrite operation for optimal performance.
-   * 
+   *
    * @param items Array of product sold count items with productId and quantity
    * @returns Array of updated product sold counts
-   * 
+   *
    * @example
    * // On order completion:
    * await ProductService.bulkIncrementSoldCount([
@@ -394,7 +422,9 @@ export class ProductService {
     // Validate quantities
     for (const item of items) {
       if (item.quantity < 1) {
-        throw new ValidationError(`Invalid quantity for product ${item.productId}`);
+        throw new ValidationError(
+          `Invalid quantity for product ${item.productId}`
+        );
       }
     }
 
@@ -413,7 +443,9 @@ export class ProductService {
 
     if (result.modifiedCount !== items.length) {
       // Some products might not exist, fetch updated counts for successful updates
-      const productIds = items.map((item) => new mongoose.Types.ObjectId(item.productId));
+      const productIds = items.map(
+        (item) => new mongoose.Types.ObjectId(item.productId)
+      );
       const updatedProducts = await Product.find({ _id: { $in: productIds } })
         .select("soldCount")
         .lean();
@@ -431,7 +463,9 @@ export class ProductService {
     }
 
     // Fetch updated counts for all products
-    const productIds = items.map((item) => new mongoose.Types.ObjectId(item.productId));
+    const productIds = items.map(
+      (item) => new mongoose.Types.ObjectId(item.productId)
+    );
     const updatedProducts = await Product.find({ _id: { $in: productIds } })
       .select("soldCount")
       .lean();
@@ -449,7 +483,10 @@ export class ProductService {
   /**
    * Get product by ID
    */
-  static async getProductById(productId: string, includeArchived: boolean = false) {
+  static async getProductById(
+    productId: string,
+    includeArchived: boolean = false
+  ) {
     const query: any = { _id: productId };
     if (!includeArchived) {
       query.status = { $ne: ProductStatus.ARCHIVED };
@@ -527,7 +564,9 @@ export class ProductService {
   /**
    * Get all products with filtering and pagination
    */
-  static async getAllProducts(options: ProductQueryOptions = {}): Promise<PaginatedProductResult> {
+  static async getAllProducts(
+    options: ProductQueryOptions = {}
+  ): Promise<PaginatedProductResult> {
     const page = Math.max(1, options.page || 1);
     const limit = Math.min(100, Math.max(1, options.limit || 10)); // Cap at 100 for performance
     const skip = (page - 1) * limit;
@@ -542,12 +581,15 @@ export class ProductService {
 
     if (options.minPrice !== undefined || options.maxPrice !== undefined) {
       query.basePrice = {};
-      if (options.minPrice !== undefined) query.basePrice.$gte = options.minPrice;
-      if (options.maxPrice !== undefined) query.basePrice.$lte = options.maxPrice;
+      if (options.minPrice !== undefined)
+        query.basePrice.$gte = options.minPrice;
+      if (options.maxPrice !== undefined)
+        query.basePrice.$lte = options.maxPrice;
     }
 
     // Select only needed fields to reduce data transfer and improve performance
-    const selectFields = "name slug shortDescription categoryId basePrice discountPrice soldCount images publishedAt createdAt status";
+    const selectFields =
+      "name slug shortDescription categoryId basePrice discountPrice soldCount images publishedAt createdAt status";
 
     // Sort by createdAt descending (newest first) by default
     const sortOrder: any = { createdAt: -1 };
@@ -596,7 +638,9 @@ export class ProductService {
    * - Cache-friendly consistent data structure
    * - Supports pagination and filtering
    */
-  static async getBestSellers(options: ProductQueryOptions = {}): Promise<PaginatedProductResult> {
+  static async getBestSellers(
+    options: ProductQueryOptions = {}
+  ): Promise<PaginatedProductResult> {
     const page = Math.max(1, options.page || 1);
     const limit = Math.min(100, Math.max(1, options.limit || 10)); // Cap at 100 for performance
     const skip = (page - 1) * limit;
@@ -612,13 +656,16 @@ export class ProductService {
 
     if (options.minPrice !== undefined || options.maxPrice !== undefined) {
       query.basePrice = {};
-      if (options.minPrice !== undefined) query.basePrice.$gte = options.minPrice;
-      if (options.maxPrice !== undefined) query.basePrice.$lte = options.maxPrice;
+      if (options.minPrice !== undefined)
+        query.basePrice.$gte = options.minPrice;
+      if (options.maxPrice !== undefined)
+        query.basePrice.$lte = options.maxPrice;
     }
 
     // Select only needed fields to reduce data transfer and improve performance
-    const selectFields = "name slug shortDescription categoryId basePrice discountPrice soldCount images publishedAt createdAt";
-    
+    const selectFields =
+      "name slug shortDescription categoryId basePrice discountPrice soldCount images publishedAt createdAt";
+
     // Determine sort order based on whether category filter is applied
     // Use compound index when categoryId is provided: { categoryId: 1, status: 1, soldCount: -1 }
     // Otherwise use: { soldCount: -1, status: 1 }
@@ -664,21 +711,23 @@ export class ProductService {
 
   /**
    * Get new arrival products (optimized query using index)
-   * 
+   *
    * New arrivals are defined as active products sorted by publish date (most recent first).
    * Only products with a publishedAt date are included.
-   * 
+   *
    * Features:
    * - Uses indexed queries for fast performance
    * - Selects only needed fields to reduce data transfer
    * - Cache-friendly consistent data structure
    * - Supports pagination and filtering
    * - Index-optimized for category filtering
-   * 
+   *
    * @param options Query options including pagination, category filter, and price range
    * @returns Paginated list of new arrival products
    */
-  static async getNewArrivals(options: ProductQueryOptions = {}): Promise<PaginatedProductResult> {
+  static async getNewArrivals(
+    options: ProductQueryOptions = {}
+  ): Promise<PaginatedProductResult> {
     const page = Math.max(1, options.page || 1);
     const limit = Math.min(100, Math.max(1, options.limit || 10)); // Cap at 100 for performance
     const skip = (page - 1) * limit;
@@ -697,13 +746,16 @@ export class ProductService {
     // Price range filter
     if (options.minPrice !== undefined || options.maxPrice !== undefined) {
       query.basePrice = {};
-      if (options.minPrice !== undefined) query.basePrice.$gte = options.minPrice;
-      if (options.maxPrice !== undefined) query.basePrice.$lte = options.maxPrice;
+      if (options.minPrice !== undefined)
+        query.basePrice.$gte = options.minPrice;
+      if (options.maxPrice !== undefined)
+        query.basePrice.$lte = options.maxPrice;
     }
 
     // Select only needed fields to reduce data transfer and improve performance
-    const selectFields = "name slug shortDescription categoryId basePrice discountPrice soldCount images publishedAt createdAt";
-    
+    const selectFields =
+      "name slug shortDescription categoryId basePrice discountPrice soldCount images publishedAt createdAt";
+
     // Use compound index when categoryId is provided: { categoryId: 1, status: 1, publishedAt: -1 }
     // Otherwise use: { publishedAt: -1, status: 1 }
     // Sort by publishedAt descending (most recent first), then createdAt as tiebreaker
@@ -748,7 +800,9 @@ export class ProductService {
   /**
    * Get discounted products (optimized query)
    */
-  static async getDiscountedProducts(options: ProductQueryOptions = {}): Promise<PaginatedProductResult> {
+  static async getDiscountedProducts(
+    options: ProductQueryOptions = {}
+  ): Promise<PaginatedProductResult> {
     const page = options.page || 1;
     const limit = options.limit || 10;
     const skip = (page - 1) * limit;
@@ -764,8 +818,10 @@ export class ProductService {
 
     if (options.minPrice !== undefined || options.maxPrice !== undefined) {
       query.basePrice = {};
-      if (options.minPrice !== undefined) query.basePrice.$gte = options.minPrice;
-      if (options.maxPrice !== undefined) query.basePrice.$lte = options.maxPrice;
+      if (options.minPrice !== undefined)
+        query.basePrice.$gte = options.minPrice;
+      if (options.maxPrice !== undefined)
+        query.basePrice.$lte = options.maxPrice;
     }
 
     const [products, total] = await Promise.all([
@@ -839,7 +895,9 @@ export class ProductService {
     }
 
     // Get unique product IDs
-    const productIds = Array.from(new Set(lowStockVariants.map((v) => v.productId.toString())));
+    const productIds = Array.from(
+      new Set(lowStockVariants.map((v) => v.productId.toString()))
+    );
 
     // Build query for products
     const productQuery: any = {
@@ -853,8 +911,10 @@ export class ProductService {
 
     if (options.minPrice !== undefined || options.maxPrice !== undefined) {
       productQuery.basePrice = {};
-      if (options.minPrice !== undefined) productQuery.basePrice.$gte = options.minPrice;
-      if (options.maxPrice !== undefined) productQuery.basePrice.$lte = options.maxPrice;
+      if (options.minPrice !== undefined)
+        productQuery.basePrice.$gte = options.minPrice;
+      if (options.maxPrice !== undefined)
+        productQuery.basePrice.$lte = options.maxPrice;
     }
 
     // Get total count
@@ -932,7 +992,9 @@ export class ProductService {
    * Get featured products (can be customized based on business logic)
    * For now, this returns active products with highest sold count
    */
-  static async getFeaturedProducts(options: ProductQueryOptions = {}): Promise<PaginatedProductResult> {
+  static async getFeaturedProducts(
+    options: ProductQueryOptions = {}
+  ): Promise<PaginatedProductResult> {
     const page = options.page || 1;
     const limit = options.limit || 10;
     const skip = (page - 1) * limit;
@@ -947,8 +1009,10 @@ export class ProductService {
 
     if (options.minPrice !== undefined || options.maxPrice !== undefined) {
       query.basePrice = {};
-      if (options.minPrice !== undefined) query.basePrice.$gte = options.minPrice;
-      if (options.maxPrice !== undefined) query.basePrice.$lte = options.maxPrice;
+      if (options.minPrice !== undefined)
+        query.basePrice.$gte = options.minPrice;
+      if (options.maxPrice !== undefined)
+        query.basePrice.$lte = options.maxPrice;
     }
 
     // Featured products: combination of high sold count and recent publication
@@ -988,17 +1052,19 @@ export class ProductService {
   /**
    * Get all products for admin (includes all statuses, search, filters, sorting)
    */
-  static async getAdminProducts(options: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    status?: ProductStatus;
-    categoryId?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  } = {}): Promise<PaginatedProductResult> {
+  static async getAdminProducts(
+    options: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: ProductStatus;
+      categoryId?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      sortBy?: string;
+      sortOrder?: "asc" | "desc";
+    } = {}
+  ): Promise<PaginatedProductResult> {
     const page = Math.max(1, options.page || 1);
     const limit = Math.min(100, Math.max(1, options.limit || 20));
     const skip = (page - 1) * limit;
@@ -1013,10 +1079,10 @@ export class ProductService {
     // Search filter (text search on name, description)
     if (options.search) {
       query.$or = [
-        { name: { $regex: options.search, $options: 'i' } },
-        { description: { $regex: options.search, $options: 'i' } },
-        { shortDescription: { $regex: options.search, $options: 'i' } },
-        { sku: { $regex: options.search, $options: 'i' } },
+        { name: { $regex: options.search, $options: "i" } },
+        { description: { $regex: options.search, $options: "i" } },
+        { shortDescription: { $regex: options.search, $options: "i" } },
+        { sku: { $regex: options.search, $options: "i" } },
       ];
     }
 
@@ -1028,19 +1094,21 @@ export class ProductService {
     // Price range filter
     if (options.minPrice !== undefined || options.maxPrice !== undefined) {
       query.basePrice = {};
-      if (options.minPrice !== undefined) query.basePrice.$gte = options.minPrice;
-      if (options.maxPrice !== undefined) query.basePrice.$lte = options.maxPrice;
+      if (options.minPrice !== undefined)
+        query.basePrice.$gte = options.minPrice;
+      if (options.maxPrice !== undefined)
+        query.basePrice.$lte = options.maxPrice;
     }
 
     // Sort order
-    const sortField = options.sortBy || 'createdAt';
-    const sortOrder = options.sortOrder === 'asc' ? 1 : -1;
+    const sortField = options.sortBy || "createdAt";
+    const sortOrder = options.sortOrder === "asc" ? 1 : -1;
     const sort: any = { [sortField]: sortOrder };
 
     // Execute query and count in parallel
     const [products, total] = await Promise.all([
       Product.find(query)
-        .populate('categoryId', 'name slug')
+        .populate("categoryId", "name slug")
         .sort(sort)
         .skip(skip)
         .limit(limit)
@@ -1085,7 +1153,7 @@ export class ProductService {
   static async deleteProduct(productId: string): Promise<void> {
     const product = await Product.findById(productId);
     if (!product) {
-      throw new NotFoundError('Product not found');
+      throw new NotFoundError("Product not found");
     }
 
     // Hard delete the product
@@ -1097,17 +1165,17 @@ export class ProductService {
    */
   static async bulkAction(
     productIds: string[],
-    action: 'publish' | 'unpublish' | 'archive' | 'delete'
+    action: "publish" | "unpublish" | "archive" | "delete"
   ): Promise<{ success: number; failed: number; errors?: string[] }> {
     if (!productIds || productIds.length === 0) {
-      throw new ValidationError('At least one product ID is required');
+      throw new ValidationError("At least one product ID is required");
     }
 
     let success = 0;
     let failed = 0;
     const errors: string[] = [];
 
-    if (action === 'delete') {
+    if (action === "delete") {
       // Hard delete
       const result = await Product.deleteMany({
         _id: { $in: productIds.map((id) => new mongoose.Types.ObjectId(id)) },
@@ -1118,13 +1186,13 @@ export class ProductService {
       // Update status
       let status: ProductStatus;
       switch (action) {
-        case 'publish':
+        case "publish":
           status = ProductStatus.ACTIVE;
           break;
-        case 'unpublish':
+        case "unpublish":
           status = ProductStatus.DRAFT;
           break;
-        case 'archive':
+        case "archive":
           status = ProductStatus.ARCHIVED;
           break;
         default:
@@ -1132,12 +1200,14 @@ export class ProductService {
       }
 
       const updateData: any = { status };
-      if (action === 'publish') {
+      if (action === "publish") {
         updateData.publishedAt = new Date();
       }
 
       const result = await Product.updateMany(
-        { _id: { $in: productIds.map((id) => new mongoose.Types.ObjectId(id)) } },
+        {
+          _id: { $in: productIds.map((id) => new mongoose.Types.ObjectId(id)) },
+        },
         { $set: updateData }
       );
 
@@ -1148,4 +1218,3 @@ export class ProductService {
     return { success, failed, errors: errors.length > 0 ? errors : undefined };
   }
 }
-

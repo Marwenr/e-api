@@ -116,7 +116,7 @@ export class OrderService {
       // Get product image
       let productImage: string | undefined;
       if (variant?.images && variant.images.length > 0) {
-        productImage = typeof variant.images[0] === 'string' ? variant.images[0] : variant.images[0].url;
+        productImage = variant.images[0]; // variant.images is string[]
       } else if (product.images && product.images.length > 0) {
         const primaryImage = product.images.find((img) => img.isPrimary);
         productImage = primaryImage ? primaryImage.url : product.images[0].url;

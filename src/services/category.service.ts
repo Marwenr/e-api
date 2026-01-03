@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Category } from "../models";
 import { NotFoundError, ValidationError } from "./errors";
 
@@ -291,9 +292,9 @@ export class CategoryService {
           throw new ValidationError("Cannot set parent category: circular reference detected");
         }
 
-        category.parentId = input.parentId;
+        category.parentId = new mongoose.Types.ObjectId(input.parentId);
       } else {
-        category.parentId = null;
+        category.parentId = undefined;
       }
     }
 

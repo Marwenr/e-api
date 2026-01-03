@@ -159,7 +159,7 @@ export class ProductVariantService {
     if (input.name !== undefined) variant.name = input.name?.trim();
     if (input.basePrice !== undefined) variant.basePrice = input.basePrice;
     if (input.discountPrice !== undefined)
-      variant.discountPrice = input.discountPrice || null;
+      variant.discountPrice = input.discountPrice ?? null;
     if (input.stock !== undefined) variant.stock = input.stock;
     if (input.attributes !== undefined) variant.attributes = input.attributes;
     if (input.images !== undefined) variant.images = input.images;
